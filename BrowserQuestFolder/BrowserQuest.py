@@ -13,6 +13,12 @@ mixer.music.load("Sound\Music.mp3")
 
 font.init()
 #-----------------------------------
+bandit=[
+(transform.scale(image.load("Entities\Bandit/1.gif"),(30,30)).convert()),
+(transform.scale(image.load("Entities\Bandit/2.gif"),(30,30)).convert()),
+(transform.scale(image.load("Entities\Bandit/3.gif"),(30,30)).convert()),
+(transform.scale(image.load("Entities\Bandit/4.gif"),(30,30)).convert())]
+    
 sandtile=transform.smoothscale(image.load("Map\Sand.png"),(30,30)).convert()
 greentile=transform.smoothscale(image.load("Map\grass.png"),(30,30)).convert()
 #------------------------------------
@@ -34,6 +40,8 @@ first=True
 erase=True
 sand=False
 entitycounter=10
+banditcounter=0
+bcounter=0
 #------------------------------------
 def pathfinder(new,old,mapp):
     if new==old:
@@ -130,7 +138,7 @@ while running:
                 if spawnmap[w][l]==2:
                     draw.rect(screen,(255,0,0),(l*30,w*30,30,30),0)
             if spawn==True:
-                if spawnmap[w][l]==0:
+                if spawnmap[w][l]==0 or spawnmap[w][l]==2:
                     screen.blit(greentile,(l*30,w*30))
                 if spawnmap[w][l]==2:
                     """
@@ -141,7 +149,15 @@ while running:
                         breath=3
                     ################
                     """
-                    draw.rect(screen,(255,0,0),(l*30,w*30,30,30),0)
+                    #draw.rect(screen,(255,0,0),(l*30,w*30,30,30),0)
+                    if bcounter%200==0:
+                        banditcounter+=1
+                    bcounter+=1
+                    if bcounter==800:
+                        bcounter=0
+                    if banditcounter==4:
+                        banditcounter=0
+                    screen.blit(bandit[banditcounter],(l*30,w*30))
 
     mappos=mx//30*30,my//30*30
     if mb[0]==1 and spawnmap[mappos[1]//30][mappos[0]//30]==0:
