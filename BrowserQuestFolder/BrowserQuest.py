@@ -27,52 +27,45 @@ sandtile=transform.smoothscale(image.load("Map\Sand.png"),(30,30)).convert()
 greentile=transform.smoothscale(image.load("Map\grass.png"),(30,30)).convert()
 #------------------------------------
 spawnmap=[[0 for x in range(30)] for x in range(15)]
-ospawnmap=spawnmap
 sandmap=[[0 for x in range(30)] for x in range(15)]
-osandmap=sandmap
-#spawnmap[5][6]=1
+villagemap=[[0 for x in range(30)] for x in range(15)]
+#------------------------------------
+land=[[0 for x in range(5)] for x in range(5)]
+land[2][1]=villagemap
+land[2][2]=spawnmap
+land[2][3]=sandmap
 #------------------------------------
 running=True
-spawn=True
+currentarea=spawnmap
 curpos=300,300
 move=False
 movecounter=0
-enter=True
-breath=3
 test=False
 first=True
 erase=True
 sand=False
 entitycounter=10
-banditcounter=0
-bcounter=0
 herocounter=0
 hcounter=0
 health=100
 healthcounter=0
 fight=False
+stage="enter"
+bcounter=0
+banditcounter=0
 #------------------------------------
 def pathfinder(new,old,mapp):
     if new==old:
         return new
-    #-----------------------------
-    """
-    curx,cury=old[1]//30,old[0]//30
-    if 0>curx or curx>29 or cury<0 or cury>14:
-        subtract=0
-    else:
-        subtract=1
-    """
-    #-----------------------------
     if old[0]!=new[0]:
-        if new[0]>old[0]:# and mapp[curx-subtract][cury]==0:
+        if new[0]>old[0]:
             return(new[0]-30,new[1])
-        if new[0]<old[0]:# and mapp[curx+subtract][cury]==0:
+        if new[0]<old[0]:
             return(new[0]+30,new[1])
     if old[1]!=new[1]:
-        if new[1]>old[1]:# and mapp[curx][cury-subtract]==0:
+        if new[1]>old[1]:
             return(new[0],new[1]-30)
-        if new[1]<old[1]:# and mapp[curx][cury+subtract]==0:
+        if new[1]<old[1]:
             return(new[0],new[1]+30)
     return new
 #----------------------------
@@ -103,11 +96,35 @@ def entity(mapp,number,clas):
         place=randint(0,451)
         column=place//15-1
         row=place%15-1
-        if clas=="bandit":
+        if clas=="bandit" and mapp[row][column]==0:
             mapp[row][column]=2
-        elif clas=="goblin":
+        elif clas=="orc" and mapp[row][column]==0:
             mapp[row][column]=3
+        elif clas=="villager" and mapp[row][column]==0:
+            mapp[row][column]=1
     return mapp
+#-----------------------------------
+def drawmap(land,stage,clas):
+    if stage=="enter":
+        land=entity(land,5,clas)
+    if land==spawnmap or land==villagemap:
+        tile=greentile
+    elif land==sandmap:
+        tile=sandtile
+    for l in range(0,30):
+        for w in range(0,15):
+            if land[w][l]>=0:#empty
+                screen.blit(tile,(l*30,w*30))
+            if land[w][l]==2:#bandit
+                #------------------
+                screen.blit(bandit[banditcounter],(l*30,w*30))#violates black box
+                #-------------------
+            if land[w][l]==1:#villager
+                draw.rect(screen,(200,200,200),(l*30,w*30,30,30),0)
+            if land[w][l]==3:#orc
+                draw.rect(screen,(0,255,0),(l*30,w*30,30,30),0)
+def transition(currentland,gridoflands):
+    pass
 #------------------------------------
 while running and health>0:
     for e in  event.get():
@@ -118,26 +135,22 @@ while running and health>0:
                 running = False
     mb = mouse.get_pressed()
     mx,my = mouse.get_pos()
-    if enter==True:
-        spawnmap=entity(spawnmap,5,"bandit")
-        enter=False
     if curpos[0]//30==29:
-        sandmap=osandmap
+        sandmap=[[0 for x in range(30)] for x in range(15)]
         curpos=300,300
-        enter=True
-        spawn=False
-        sand=True
+        stage="enter"
+        currentarea=sandmap
     elif curpos[0]//30==0:
-        spawnmap=ospawnmap
+        spawnmap=[[0 for x in range(30)] for x in range(15)]
         curpos=300,300
-        enter=True
-        spawn=True
-        sand=False
+        currentarea=spawnmap
+        stage="enter"
     #---------------------------------
-    if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30+1][curpos[0]//30]==2:
+    if curpos[0]//30<29 and curpos[1]//30<14 and currentarea[curpos[1]//30+1][curpos[0]//30]>1:
         test=True
         healthcounter+=1
         if healthcounter%50==0:
+            currentarea[curpos[1]//30+1][curpos[0]//30]=0
             fight=True
             healthcounter=0
             health-=10
@@ -166,44 +179,31 @@ while running and health>0:
     if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30][curpos[0]//30-1]==2:
         pass
     #-------------------------------
+    if currentarea==spawnmap:
+        drawmap(spawnmap,stage,"bandit")
+        if bcounter%200==0:
+            banditcounter+=1
+        bcounter+=1
+        if bcounter==80:
+            bcounter=0
+        if banditcounter==4:
+            banditcounter=0
+        stage="explore"
+    elif currentarea==sandmap:
+        drawmap(sandmap,stage,"orc")
+        stage="explore"
+    #--------------------------------------
     draw.rect(screen,(0),(0,450,900,50),0)
     draw.rect(screen,(0,255,0),(0,450,max((900-(100-health)*9),0),50),0)
-    for l in range(0,30):
-        for w in range(0,15):
-            if sand==True:
-                if spawnmap[w][l]==0:
-                    screen.blit(sandtile,(l*30,w*30))
-                if spawnmap[w][l]==2:
-                    draw.rect(screen,(255,0,0),(l*30,w*30,30,30),0)
-            if spawn==True:
-                if spawnmap[w][l]==0 or spawnmap[w][l]==2:
-                    screen.blit(greentile,(l*30,w*30))
-                if spawnmap[w][l]==2:
-                    """
-                    #################
-                    if breath==3:
-                        breath=0
-                    elif breath==0:
-                        breath=3
-                    ################
-                    """
-                    #draw.rect(screen,(255,0,0),(l*30,w*30,30,30),0)
-                    if bcounter%200==0:
-                        banditcounter+=1
-                    bcounter+=1
-                    if bcounter==800:
-                        bcounter=0
-                    if banditcounter==4:
-                        banditcounter=0
-                    screen.blit(bandit[banditcounter],(l*30,w*30))
-
-    mappos=mx//30*30,my//30*30
-    if mb[0]==1 and spawnmap[mappos[1]//30][mappos[0]//30]==0:
+    #-------------------------------
+    mappos=min(max(mx//30*30,0),870),min(max(my//30*30,0),420)
+    if mb[0]==1 and currentarea[mappos[1]//30][mappos[0]//30]==0:
         draw.rect(screen,(255,0,0),(mappos[0],mappos[1],30,30),1)
         move=True
         omappos=mappos
     elif mb[0]==0:
         draw.rect(screen,(0,255,0),(mappos[0],mappos[1],30,30),1)
+    #------------------
     if fight==True:
         hcounter+=1
     if hcounter%20==0 and hcounter>0:
@@ -211,14 +211,14 @@ while running and health>0:
         hcounter=0
     if herocounter==16:
         herocounter=0
+    #----------------
     screen.blit(hero[herocounter],(curpos[0]-30,curpos[1]-35))
-    #draw.rect(screen,(0,0,255),(curpos[0],curpos[1],30,30),0)
     movecounter+=1
     if move==True and movecounter%7==0:
         movecounter=0
         if curpos==mappos:
             move=False
-        curpos=pathfinder(curpos,omappos,spawnmap)
+        curpos=pathfinder(curpos,omappos,currentarea)
         """
         grid=spawnmap
         grid[omappos[1]//30][omappos[0]//30]=1
