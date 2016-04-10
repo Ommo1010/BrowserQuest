@@ -5,7 +5,7 @@ from random import *
 from pprint import *
 #------------------------------------
 flags=DOUBLEBUF|HWSURFACE#|FULLSCREEN
-screen = display.set_mode((900,450),flags,32)
+screen = display.set_mode((900,500),flags,32)
 #------------------------------------
 init()                                  
 mixer.music.load("Sound\Music.mp3")      
@@ -18,7 +18,11 @@ bandit=[
 (transform.scale(image.load("Entities\Bandit/2.gif"),(30,30)).convert()),
 (transform.scale(image.load("Entities\Bandit/3.gif"),(30,30)).convert()),
 (transform.scale(image.load("Entities\Bandit/4.gif"),(30,30)).convert())]
-    
+
+hero=[]
+for i in range(1,17):
+    hero.append(transform.scale(image.load("Hero/"+str(i)+".gif"),(90,75)).convert())
+
 sandtile=transform.smoothscale(image.load("Map\Sand.png"),(30,30)).convert()
 greentile=transform.smoothscale(image.load("Map\grass.png"),(30,30)).convert()
 #------------------------------------
@@ -42,6 +46,11 @@ sand=False
 entitycounter=10
 banditcounter=0
 bcounter=0
+herocounter=0
+hcounter=0
+health=100
+healthcounter=0
+fight=False
 #------------------------------------
 def pathfinder(new,old,mapp):
     if new==old:
@@ -100,7 +109,7 @@ def entity(mapp,number,clas):
             mapp[row][column]=3
     return mapp
 #------------------------------------
-while running:
+while running and health>0:
     for e in  event.get():
         if e.type==QUIT:
             running=False
@@ -124,13 +133,18 @@ while running:
         enter=True
         spawn=True
         sand=False
-    """
     #---------------------------------
     if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30+1][curpos[0]//30]==2:
         test=True
+        healthcounter+=1
+        if healthcounter%50==0:
+            fight=True
+            healthcounter=0
+            health-=10
     entitycounter+=1
-    if test==True and entitycounter%10==0:
+    if test==True and entitycounter%5==0:
         entitycounter=0
+        """
         if first==True:
             entitypos=pathfinder(curpos,(curpos[0]+1,curpos[1]),spawnmap)
             first=False
@@ -143,6 +157,7 @@ while running:
             erase=True
         spawnmap[oldpos[0]][oldpos[1]]=0
         spawnmap[entitypos[1]//30][entitypos[0]//30]=2
+        """
     #--------------------------------
     if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30-1][curpos[0]//30]==2:
         pass
@@ -151,7 +166,8 @@ while running:
     if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30][curpos[0]//30-1]==2:
         pass
     #-------------------------------
-    """
+    draw.rect(screen,(0),(0,450,900,50),0)
+    draw.rect(screen,(0,255,0),(0,450,max((900-(100-health)*9),0),50),0)
     for l in range(0,30):
         for w in range(0,15):
             if sand==True:
@@ -188,7 +204,15 @@ while running:
         omappos=mappos
     elif mb[0]==0:
         draw.rect(screen,(0,255,0),(mappos[0],mappos[1],30,30),1)
-    draw.rect(screen,(0,0,255),(curpos[0],curpos[1],30,30),0)
+    if fight==True:
+        hcounter+=1
+    if hcounter%20==0 and hcounter>0:
+        herocounter+=1
+        hcounter=0
+    if herocounter==16:
+        herocounter=0
+    screen.blit(hero[herocounter],(curpos[0]-30,curpos[1]-35))
+    #draw.rect(screen,(0,0,255),(curpos[0],curpos[1],30,30),0)
     movecounter+=1
     if move==True and movecounter%7==0:
         movecounter=0
