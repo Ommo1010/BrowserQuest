@@ -16,11 +16,13 @@ font.init()
 greentile=transform.smoothscale(image.load("Map\grass.png"),(30,30)).convert()
 #------------------------------------
 spawnmap=[[0 for x in range(30)] for x in range(15)]
+spawnmap[5][6]=1
 #------------------------------------
 running=True
 spawn=True
 curpos=0,0
 move=False
+movecounter=0
 #------------------------------------
 def pathfinder(new,old):
     if new==old:
@@ -51,15 +53,18 @@ while running:
                 if spawnmap[w][l]==0:
                     screen.blit(greentile,(l*30,w*30))
     mappos=mx//30*30,my//30*30
-    if mb[0]==1:
+    if mb[0]==1 and spawnmap[mappos[1]//30][mappos[0]//30]==0:
         draw.rect(screen,(255,0,0),(mappos[0],mappos[1],30,30),1)
         move=True
+        omappos=mappos
     elif mb[0]==0:
         draw.rect(screen,(0,255,0),(mappos[0],mappos[1],30,30),1)
     draw.rect(screen,(0,0,255),(curpos[0],curpos[1],30,30),0)
-    if move==True:
+    movecounter+=1
+    if move==True and movecounter%5==0:
+        movecounter=0
         if curpos==mappos:
             move=False
-        curpos=pathfinder(curpos,mappos)
+        curpos=pathfinder(curpos,omappos)
     display.flip()
 quit()
