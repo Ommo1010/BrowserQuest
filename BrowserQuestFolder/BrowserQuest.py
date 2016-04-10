@@ -66,6 +66,28 @@ def pathfinder(new,old,mapp):
         if new[1]<old[1]:# and mapp[curx][cury+subtract]==0:
             return(new[0],new[1]+30)
     return new
+#----------------------------
+def search(x, y, grid):
+    if grid[x][y] == 1:
+        print("found",x,y)
+        return(x*30,y*30)
+
+    elif grid[x][y] == 2:
+        print("wall",x,y)
+        return False
+    elif grid[x][y] == 3:
+        print("visited",x,y)
+        return False
+    print("visiting",x,y)
+    # mark as visited
+    grid[x][y] = 3
+    # explore neighbors clockwise starting by the one on the right
+    if ((x < len(grid)-1 and search(x+1, y, grid))
+        or (y > 0 and search(x, y-1, grid))
+        or (x > 0 and search(x-1, y, grid))
+        or (y < len(grid)-1 and search(x, y+1, grid))):
+        return True
+    return False
 #------------------------------------
 def entity(mapp,number,clas):
     for i in range(number):
@@ -102,8 +124,8 @@ while running:
         enter=True
         spawn=True
         sand=False
-    #---------------------------------
     """
+    #---------------------------------
     if curpos[0]//30<29 and curpos[1]//30<14 and spawnmap[curpos[1]//30+1][curpos[0]//30]==2:
         test=True
     entitycounter+=1
@@ -173,6 +195,10 @@ while running:
         if curpos==mappos:
             move=False
         curpos=pathfinder(curpos,omappos,spawnmap)
-    
+        """
+        grid=spawnmap
+        grid[omappos[1]//30][omappos[0]//30]=1
+        curpos=search(curpos[0]//30,curpos[1]//30,grid)
+        """
     display.flip()
 quit()
