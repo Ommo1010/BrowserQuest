@@ -33,6 +33,7 @@ villagemap=[[0 for x in range(30)] for x in range(15)]
 land=[[0 for x in range(5)] for x in range(5)]
 land[2][1]=villagemap
 land[2][2]=spawnmap
+currentland=2,2
 land[2][3]=sandmap
 #------------------------------------
 running=True
@@ -123,8 +124,18 @@ def drawmap(land,stage,clas):
                 draw.rect(screen,(200,200,200),(l*30,w*30,30,30),0)
             if land[w][l]==3:#orc
                 draw.rect(screen,(0,255,0),(l*30,w*30,30,30),0)
-def transition(currentland,gridoflands):
-    pass
+def transition(currentland,nextland,gridoflands):
+    try:
+        t=gridoflands[currentland[0]+nextland[0]]
+    except IndexError:
+        return currentland
+    try:
+        t=gridoflands[currentland[1]+nextland[1]]
+    except IndexError:
+        return currentland
+    arriveat=gridoflands[currentland[0]+nextland[0]][currentland[1]+nextland[1]]
+    arriveat=[[0 for x in range(30)] for x in range(15)]
+    return arriveat
 #------------------------------------
 while running and health>0:
     for e in  event.get():
@@ -136,11 +147,13 @@ while running and health>0:
     mb = mouse.get_pressed()
     mx,my = mouse.get_pos()
     if curpos[0]//30==29:
+        #currentarea=transition(currentland,(0,1),land)
         sandmap=[[0 for x in range(30)] for x in range(15)]
         curpos=300,300
-        stage="enter"
         currentarea=sandmap
+        stage="enter"
     elif curpos[0]//30==0:
+        #currentarea=transition(currentland,(0,-1),land)
         spawnmap=[[0 for x in range(30)] for x in range(15)]
         curpos=300,300
         currentarea=spawnmap
