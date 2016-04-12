@@ -9,7 +9,7 @@ screen = display.set_mode((900,500),flags,32)
 #------------------------------------
 init()                                  
 mixer.music.load("Sound\Music.mp3")      
-#mixer.music.play(-1)#plays the song indefinitely
+mixer.music.play(-1)#plays the song indefinitely
 
 font.init()
 #-----------------------------------
@@ -36,6 +36,7 @@ land[2][2]=spawnmap
 currentland=2,2
 land[2][3]=sandmap
 #------------------------------------
+curpos1=150,150
 running=True
 currentarea=spawnmap
 curpos=300,300
@@ -54,6 +55,9 @@ fight=False
 stage="enter"
 bcounter=0
 banditcounter=0
+player2=False
+healthcounter1=0
+health1=100
 #------------------------------------
 def pathfinder(new,old,mapp):
     if new==old:
@@ -124,6 +128,10 @@ def drawmap(land,stage,clas):
                 draw.rect(screen,(200,200,200),(l*30,w*30,30,30),0)
             if land[w][l]==3:#orc
                 draw.rect(screen,(0,255,0),(l*30,w*30,30,30),0)
+    land[curpos[1]//30][curpos[0]//30]=5
+    #CHEESUS CRUST
+    #print(land[curpos[1]//30][curpos[0]//30])
+    land[curpos1[1]//30][curpos1[0]//30]=6
 def transition(currentland,nextland,gridoflands):
     try:
         t=gridoflands[currentland[0]+nextland[0]]
@@ -144,6 +152,19 @@ while running and health>0:
         elif e.type == KEYDOWN:
             if e.key == K_ESCAPE:
                 running = False
+        if e.type == KEYDOWN:
+            player2=True
+            omappos1=mappos
+            if e.key == K_a:
+                curpos1=curpos1[0]-30,curpos1[1]
+            if e.key == K_w:
+                curpos1=curpos1[0],curpos1[1]-30
+            if e.key == K_d:
+                curpos1=curpos1[0]+30,curpos1[1]
+            if e.key == K_s:
+                curpos1=curpos1[0],curpos1[1]+30
+        else:
+            player2=False
     mb = mouse.get_pressed()
     mx,my = mouse.get_pos()
     if curpos[0]//30==29:
@@ -160,6 +181,7 @@ while running and health>0:
         stage="enter"
     #---------------------------------
     if curpos[0]//30<29 and curpos[1]//30<14 and currentarea[curpos[1]//30+1][curpos[0]//30]>1:
+        #print(currentarea[curpos[1]//30+1][curpos[0]//30])
         test=True
         healthcounter+=1
         if healthcounter%50==0:
@@ -167,7 +189,22 @@ while running and health>0:
             fight=True
             healthcounter=0
             health-=10
-    entitycounter+=1
+            entitycounter+=1
+    if test==True and entitycounter%5==0:
+        entitycounter=0
+
+
+
+    if curpos1[0]//30<29 and curpos1[1]//30<14 and currentarea[curpos1[1]//30+1][curpos1[0]//30]>1:
+        print(health1)
+        test=True
+        healthcounter1+=1
+        if healthcounter1%50==0:
+            currentarea[curpos1[1]//30+1][curpos1[0]//30]=0
+            fight=True
+            healthcounter1=0
+            health1-=10
+            entitycounter+=1
     if test==True and entitycounter%5==0:
         entitycounter=0
         """
@@ -226,16 +263,22 @@ while running and health>0:
         herocounter=0
     #----------------
     screen.blit(hero[herocounter],(curpos[0]-30,curpos[1]-35))
+    screen.blit(hero[herocounter],(curpos1[0]-30,curpos1[1]-35))
     movecounter+=1
     if move==True and movecounter%7==0:
         movecounter=0
         if curpos==mappos:
             move=False
         curpos=pathfinder(curpos,omappos,currentarea)
+    
+    #if player2==True and movecounter%7==0:
+        #curpos1=pathfinder(curpos1,omappos1,currentarea)
+        #curpos1=pathfinder(curpos1,omappos1,currentarea)
         """
         grid=spawnmap
         grid[omappos[1]//30][omappos[0]//30]=1
         curpos=search(curpos[0]//30,curpos[1]//30,grid)
         """
+    #print(currentarea[curpos[1]//30+1][curpos[0]//30])
     display.flip()
 quit()
